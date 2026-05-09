@@ -36,6 +36,8 @@ function buildContext(hand: HandInput, parsed: ParsedHand): YakuContext {
 /** 立直 */
 function checkRiichi(ctx: YakuContext): YakuResult | null {
   if (!ctx.isMenzen || !ctx.hand.isRiichi) return null;
+  // ダブルリーチが成立している場合は通常リーチは成立しない
+  if (ctx.hand.isDoubleRiichi) return null;
   return { name: "立直", nameEn: "Riichi", han: 1, isYakuman: false };
 }
 

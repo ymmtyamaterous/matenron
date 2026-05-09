@@ -42,6 +42,17 @@ describe("calculateYaku", () => {
       const yaku = calculateYaku(hand, parsed[0]);
       expect(yaku.some((y) => y.nameEn === "Riichi")).toBe(true);
     });
+
+    it("ダブルリーチ成立時は通常リーチが成立しない", () => {
+      const tiles = [m(1), m(2), m(3), m(4), m(5), m(6), m(7), m(8), m(9), p(1), p(2), p(3), s(1), s(1)];
+      const winTile = s(1);
+      const hand = makeHand(tiles, winTile, { isRiichi: true, isDoubleRiichi: true });
+      const parsed = parseHand(tiles);
+      expect(parsed.length).toBeGreaterThan(0);
+      const yaku = calculateYaku(hand, parsed[0]);
+      expect(yaku.some((y) => y.nameEn === "Double Riichi")).toBe(true);
+      expect(yaku.some((y) => y.nameEn === "Riichi")).toBe(false);
+    });
   });
 
   describe("断么九", () => {

@@ -266,17 +266,17 @@ function HandInputModePanel({
             [
               { label: "親", checked: isOya, set: setIsOya },
               { label: "ツモ", checked: isTsumo, set: setIsTsumo },
-              { label: "立直", checked: isRiichi, set: (v: boolean) => { setIsRiichi(v); if (!v) { setIsDoubleRiichi(false); setIsIppatsu(false); setUraDoraCount(0); } } },
+              { label: "立直", checked: isRiichi, set: (v: boolean) => { setIsRiichi(v); if (!v) { setIsDoubleRiichi(false); setIsIppatsu(false); setUraDoraCount(0); } }, disabled: isDoubleRiichi },
               { label: "ダブル立直", checked: isDoubleRiichi, set: (v: boolean) => { setIsDoubleRiichi(v); if (v) setIsRiichi(true); } },
               { label: "一発", checked: isIppatsu, set: setIsIppatsu },
               { label: "嶺上開花", checked: isRinshan, set: setIsRinshan },
               { label: "槍槓", checked: isChankan, set: setIsChankan },
               { label: "海底", checked: isHaitei, set: setIsHaitei },
               { label: "河底", checked: isHoutei, set: setIsHoutei },
-            ] as Array<{ label: string; checked: boolean; set: (v: boolean) => void }>
-          ).map(({ label, checked, set }) => (
-            <label key={label} className="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)} className="w-4 h-4 accent-primary" />
+            ] as Array<{ label: string; checked: boolean; set: (v: boolean) => void; disabled?: boolean }>
+          ).map(({ label, checked, set, disabled }) => (
+            <label key={label} className={`flex items-center gap-1.5 ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
+              <input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)} disabled={disabled} className="w-4 h-4 accent-primary" />
               <span className="text-sm text-foreground">{label}</span>
             </label>
           ))}
