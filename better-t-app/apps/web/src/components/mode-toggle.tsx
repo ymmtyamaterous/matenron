@@ -1,4 +1,3 @@
-import { Button } from "@better-t-app/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,15 +13,22 @@ export function ModeToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
-        <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-        <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-        <span className="sr-only">Toggle theme</span>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-foreground/70 hover:bg-accent hover:text-foreground transition-colors"
+          />
+        }
+      >
+        <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+        <Moon className="absolute h-4 w-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+        <span className="sr-only">テーマ切替</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+      <DropdownMenuContent align="end" className="min-w-28">
+        <DropdownMenuItem onClick={() => setTheme("light")}>ライト</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>ダーク</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")}>システム</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
