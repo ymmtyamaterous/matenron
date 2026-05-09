@@ -17,7 +17,7 @@ export function ModeToggle() {
         render={
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-foreground/70 hover:bg-accent hover:text-foreground transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-foreground/70 hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
           />
         }
       >

@@ -121,7 +121,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                       aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -152,7 +152,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                     <button
                       type="button"
                       onClick={() => setShowConfirm((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                       aria-label={showConfirm ? "パスワードを隠す" : "パスワードを表示"}
                     >
                       {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -176,7 +176,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             すでにアカウントをお持ちの方は{" "}
-            <button type="button" onClick={onSwitchToSignIn} className="text-primary font-medium hover:underline">
+            <button type="button" onClick={onSwitchToSignIn} className="text-primary font-medium hover:underline cursor-pointer">
               ログイン
             </button>
           </div>

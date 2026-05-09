@@ -38,7 +38,7 @@ export default function UserMenu() {
         render={
           <button
             type="button"
-            className="flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground transition-colors"
+            className="flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
           />
         }
       >

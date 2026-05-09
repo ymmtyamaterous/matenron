@@ -94,7 +94,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                       aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -118,7 +118,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             アカウントをお持ちでない方は{" "}
-            <button type="button" onClick={onSwitchToSignUp} className="text-primary font-medium hover:underline">
+            <button type="button" onClick={onSwitchToSignUp} className="text-primary font-medium hover:underline cursor-pointer">
               新規登録
             </button>
           </div>

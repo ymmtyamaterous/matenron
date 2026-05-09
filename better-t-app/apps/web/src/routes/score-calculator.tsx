@@ -41,7 +41,7 @@ function ScoreCalculatorPage() {
                 key={h}
                 type="button"
                 onClick={() => setHan(h)}
-                className={`w-10 h-10 rounded-lg text-sm font-medium border transition-colors ${
+                className={`w-10 h-10 rounded-lg text-sm font-medium border transition-colors cursor-pointer ${
                   han === h
                     ? "bg-primary text-primary-foreground border-primary"
                     : "border-border bg-background text-foreground hover:border-primary"
@@ -62,7 +62,7 @@ function ScoreCalculatorPage() {
                 key={f}
                 type="button"
                 onClick={() => setFu(f)}
-                className={`px-3 h-10 rounded-lg text-sm font-medium border transition-colors ${
+                className={`px-3 h-10 rounded-lg text-sm font-medium border transition-colors cursor-pointer ${
                   fu === f
                     ? "bg-primary text-primary-foreground border-primary"
                     : "border-border bg-background text-foreground hover:border-primary"
