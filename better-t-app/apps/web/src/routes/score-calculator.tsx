@@ -1,9 +1,10 @@
-import type { Tile, WindValue } from "@better-t-app/api/lib/score/tiles";
+import type { Mentsu, Tile, WindValue } from "@better-t-app/api/lib/score/tiles";
 import { tileDisplayName } from "@better-t-app/api/lib/score/tiles";
 import { Button } from "@better-t-app/ui/components/button";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { FuroInput } from "@/components/furo-input";
 import { HandDisplay } from "@/components/hand-display";
 import { TileSelector } from "@/components/tile-selector";
 import { orpc } from "@/utils/orpc";
@@ -127,6 +128,7 @@ function HandInputModePanel({
 }) {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [winTile, setWinTile] = useState<Tile | null>(null);
+  const [furoMentsuList, setFuroMentsuList] = useState<Mentsu[]>([]);
   const [bakaze, setBakaze] = useState<WindValue>(1);
   const [jikaze, setJikaze] = useState<WindValue>(1);
   const [isRiichi, setIsRiichi] = useState(false);
@@ -142,12 +144,24 @@ function HandInputModePanel({
 
   const analyze = useMutation(orpc.score.analyzeHand.mutationOptions());
 
+  // 副露枚数に基づく暗牌最大枚数 (14 - 3*n)
+  const maxConcealedTiles = 14 - 3 * furoMentsuList.length;
+
+  // チー/ポン/明槓があれば門前崩れ（暗槓のみは門前維持）
+  const hasFuro = furoMentsuList.some((m) => m.furoType !== "ankan");
+
+  // 4枚制限チェック用: 暗牌 + 副露牌をすべて含む
+  const allUsedTiles = useMemo(
+    () => [...tiles, ...furoMentsuList.flatMap((m) => m.tiles)],
+    [tiles, furoMentsuList],
+  );
+
   const handleAddTile = (tile: Tile) => {
-    if (tiles.length >= 14) return;
+    if (tiles.length >= maxConcealedTiles) return;
     const newTiles = [...tiles, tile];
     setTiles(newTiles);
-    // 14枚目を自動的に和了牌に設定
-    if (newTiles.length === 14) {
+    // 最大枚数に達したら自動的に和了牌を設定
+    if (newTiles.length === maxConcealedTiles) {
       setWinTile(tile);
     }
   };
@@ -164,18 +178,64 @@ function HandInputModePanel({
     setWinTile(tile);
   };
 
-  const handleReset = () => {
-    setTiles([]);
-    setWinTile(null);
+  const handleAddFuro = (mentsu: Mentsu) => {
+    if (furoMentsuList.length >= 4) return;
+    const newFuroList = [...furoMentsuList, mentsu];
+    setFuroMentsuList(newFuroList);
+
+    // 副露追加で暗牌最大枚数が減るため、超過分を切り捨て
+    const newMax = 14 - 3 * newFuroList.length;
+    if (tiles.length > newMax) {
+      setTiles(tiles.slice(0, newMax));
+      setWinTile(null);
+    }
+
+    // チー/ポン/明槓で門前崩れ → 立直系フラグをリセット
+    const breaksMenzen = mentsu.furoType !== "ankan";
+    if (breaksMenzen) {
+      setIsRiichi(false);
+      setIsDoubleRiichi(false);
+      setIsIppatsu(false);
+      setUraDoraCount(0);
+    }
+
     analyze.reset();
   };
 
-  const canAnalyze = tiles.length === 14 && winTile !== null;
+  const handleRemoveFuro = (index: number) => {
+    setFuroMentsuList(furoMentsuList.filter((_, i) => i !== index));
+    analyze.reset();
+  };
+
+  const handleReset = () => {
+    setTiles([]);
+    setWinTile(null);
+    setFuroMentsuList([]);
+    setIsRiichi(false);
+    setIsDoubleRiichi(false);
+    setIsIppatsu(false);
+    setIsRinshan(false);
+    setIsChankan(false);
+    setIsHaitei(false);
+    setIsHoutei(false);
+    setDoraCount(0);
+    setUraDoraCount(0);
+    setAkaDoraCount(0);
+    analyze.reset();
+  };
+
+  const canAnalyze = tiles.length === maxConcealedTiles && winTile !== null;
 
   const handleAnalyze = () => {
     if (!canAnalyze || !winTile) return;
     analyze.mutate({
       tiles,
+      furoMentsuList: furoMentsuList.map((m) => ({
+        type: m.type,
+        tiles: m.tiles,
+        isFuro: m.isFuro,
+        furoType: m.furoType ?? "pon",
+      })),
       winTile,
       isTsumo,
       isOya,
@@ -197,18 +257,40 @@ function HandInputModePanel({
   return (
     <>
       <div className="rounded-xl border border-border bg-card p-6 space-y-6 mb-4">
+        {/* 副露 (鳴き) */}
+        <div>
+          <p className="text-sm font-medium text-foreground mb-3">副露 (鳴き)</p>
+          <FuroInput
+            furoMentsuList={furoMentsuList}
+            allUsedTiles={allUsedTiles}
+            onAdd={handleAddFuro}
+            onRemove={handleRemoveFuro}
+            disabled={furoMentsuList.length >= 4}
+          />
+        </div>
+
         {/* 手牌表示 */}
         <HandDisplay
           tiles={tiles}
           winTile={winTile}
           onRemoveTile={handleRemoveTile}
           onSetWinTile={handleSetWinTile}
+          maxTiles={maxConcealedTiles}
         />
 
         {/* 牌選択 */}
         <div>
-          <p className="text-sm font-medium text-foreground mb-3">牌を選択</p>
-          <TileSelector onSelect={handleAddTile} currentTiles={tiles} disabled={tiles.length >= 14} />
+          <p className="text-sm font-medium text-foreground mb-3">
+            牌を選択
+            <span className="text-xs text-muted-foreground ml-2">
+              ({tiles.length}/{maxConcealedTiles}枚)
+            </span>
+          </p>
+          <TileSelector
+            onSelect={handleAddTile}
+            currentTiles={allUsedTiles}
+            disabled={tiles.length >= maxConcealedTiles}
+          />
         </div>
 
         <div className="flex gap-2">
@@ -260,15 +342,15 @@ function HandInputModePanel({
           </div>
         </div>
 
-        {/* 親・ツモ */}
+        {/* 特殊条件チェックボックス */}
         <div className="flex flex-wrap gap-4">
           {(
             [
               { label: "親", checked: isOya, set: setIsOya },
               { label: "ツモ", checked: isTsumo, set: setIsTsumo },
-              { label: "立直", checked: isRiichi, set: (v: boolean) => { setIsRiichi(v); if (!v) { setIsDoubleRiichi(false); setIsIppatsu(false); setUraDoraCount(0); } }, disabled: isDoubleRiichi },
-              { label: "ダブル立直", checked: isDoubleRiichi, set: (v: boolean) => { setIsDoubleRiichi(v); if (v) setIsRiichi(true); } },
-              { label: "一発", checked: isIppatsu, set: setIsIppatsu },
+              { label: "立直", checked: isRiichi, set: (v: boolean) => { setIsRiichi(v); if (!v) { setIsDoubleRiichi(false); setIsIppatsu(false); setUraDoraCount(0); } }, disabled: isDoubleRiichi || hasFuro },
+              { label: "ダブル立直", checked: isDoubleRiichi, set: (v: boolean) => { setIsDoubleRiichi(v); if (v) setIsRiichi(true); }, disabled: hasFuro },
+              { label: "一発", checked: isIppatsu, set: setIsIppatsu, disabled: hasFuro },
               { label: "嶺上開花", checked: isRinshan, set: setIsRinshan },
               { label: "槍槓", checked: isChankan, set: setIsChankan },
               { label: "海底", checked: isHaitei, set: setIsHaitei },
@@ -303,7 +385,11 @@ function HandInputModePanel({
         </div>
 
         <Button onClick={handleAnalyze} disabled={!canAnalyze || analyze.isPending} className="w-full">
-          {analyze.isPending ? "解析中..." : canAnalyze ? "点数を計算する" : `あと${14 - tiles.length}枚入力してください`}
+          {analyze.isPending
+            ? "解析中..."
+            : canAnalyze
+              ? "点数を計算する"
+              : `あと${maxConcealedTiles - tiles.length}枚入力してください`}
         </Button>
       </div>
 

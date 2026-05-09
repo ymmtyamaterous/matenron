@@ -117,17 +117,24 @@ export interface HandInput {
   akaDoraCount: number;
   /** 和了牌 (最後に引いた/ロンした牌) */
   winTile: Tile;
+  /** 副露済み面子リスト (チー/ポン/明槓/暗槓)。暗牌枚数 = 14 - 3 * length */
+  furoMentsuList: Mentsu[];
 }
 
 /** 面子の種類 */
 export type MentsuType = "shuntsu" | "koutsu" | "kantsu";
 
+/** 副露の種類 */
+export type FuroType = "pon" | "chi" | "minkan" | "ankan";
+
 /** 面子 */
 export interface Mentsu {
   type: MentsuType;
   tiles: Tile[];
-  /** 副露(鳴き)かどうか */
+  /** 副露(鳴き)かどうか (暗槓は false) */
   isFuro: boolean;
+  /** 副露の種類 (副露の場合のみ) */
+  furoType?: FuroType;
 }
 
 /** 雀頭 */

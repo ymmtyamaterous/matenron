@@ -273,6 +273,31 @@ export function parseHand(tiles: Tile[]): ParsedHand[] {
   return results;
 }
 
+/**
+ * 副露(鳴き)を含む手牌を解析する
+ * @param concealedTiles 暗牌 (14 - 3 * furoMentsuList.length 枚)
+ * @param furoMentsuList 副露済み面子リスト
+ */
+export function parseHandWithFuro(concealedTiles: Tile[], furoMentsuList: Mentsu[]): ParsedHand[] {
+  const n = furoMentsuList.length;
+  const expectedCount = 14 - 3 * n;
+
+  if (concealedTiles.length !== expectedCount) return [];
+
+  // 副露なし: 通常の parseHand と同じ（国士・七対子含む）
+  if (n === 0) {
+    return parseHand(concealedTiles);
+  }
+
+  // 副露あり: 通常手のみ（国士・七対子は不可）
+  const decomposed = decomposeWithJantai(concealedTiles);
+
+  return decomposed.map((parsed) => ({
+    ...parsed,
+    mentsuList: [...furoMentsuList, ...parsed.mentsuList],
+  }));
+}
+
 /** 和了可能かどうかだけを判定する */
 export function isWinningHand(tiles: Tile[]): boolean {
   return parseHand(tiles).length > 0;

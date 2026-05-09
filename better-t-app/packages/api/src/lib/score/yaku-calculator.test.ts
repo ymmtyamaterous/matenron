@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import type { HandInput, Tile, WindValue } from "./tiles";
-import { calculateYaku } from "./yaku-calculator";
-import { parseHand } from "./hand-parser";
+import type { HandInput, Mentsu, Tile, WindValue } from "./tiles";
+import { calculateYaku, totalHan } from "./yaku-calculator";
+import { parseHand, parseHandWithFuro } from "./hand-parser";
 
 const m = (v: number): Tile => ({ suit: "man", value: v });
 const p = (v: number): Tile => ({ suit: "pin", value: v });
@@ -27,6 +27,7 @@ function makeHand(tiles: Tile[], winTile: Tile, overrides: Partial<HandInput> = 
     doraCount: 0,
     uraDoraCount: 0,
     akaDoraCount: 0,
+    furoMentsuList: [],
     ...overrides,
   };
 }
@@ -146,6 +147,101 @@ describe("calculateYaku", () => {
         expect(yaku.some((y) => y.nameEn === "Kokushi")).toBe(true);
         expect(yaku.some((y) => y.isYakuman)).toBe(true);
       }
+    });
+  });
+
+  describe("副露 (鳴き)", () => {
+    it("ポン手: 対々和が成立する (副露あり)", () => {
+      // ポン: 中中中 (副露)
+      const ponMentsu: Mentsu = {
+        type: "koutsu",
+        tiles: [dragon(3), dragon(3), dragon(3)],
+        isFuro: true,
+        furoType: "pon",
+      };
+      // 暗牌: 111m 222p 333s 東東 (11枚)
+      const concealedTiles = [m(1), m(1), m(1), p(2), p(2), p(2), s(3), s(3), s(3), wind(1), wind(1)];
+      const winTile = wind(1);
+      const hand = makeHand(concealedTiles, winTile, { furoMentsuList: [ponMentsu] });
+      const parsedList = parseHandWithFuro(concealedTiles, [ponMentsu]);
+      expect(parsedList.length).toBeGreaterThan(0);
+      const yaku = calculateYaku(hand, parsedList[0]);
+      expect(yaku.some((y) => y.nameEn === "Toitoi")).toBe(true);
+    });
+
+    it("ポン手: 門前ツモが成立しない", () => {
+      // ポン: 発発発 (副露)
+      const ponMentsu: Mentsu = {
+        type: "koutsu",
+        tiles: [dragon(2), dragon(2), dragon(2)],
+        isFuro: true,
+        furoType: "pon",
+      };
+      // 暗牌: 234m 567p 東東東 + 南南 (11枚)
+      const concealedTiles = [m(2), m(3), m(4), p(5), p(6), p(7), wind(2), wind(2), wind(2), s(5), s(5)];
+      const winTile = s(5);
+      const hand = makeHand(concealedTiles, winTile, { isTsumo: true, furoMentsuList: [ponMentsu] });
+      const parsedList = parseHandWithFuro(concealedTiles, [ponMentsu]);
+      expect(parsedList.length).toBeGreaterThan(0);
+      const yaku = calculateYaku(hand, parsedList[0]);
+      expect(yaku.some((y) => y.nameEn === "Menzen Tsumo")).toBe(false);
+    });
+
+    it("チー手: 食い断が成立する (副露あり)", () => {
+      // チー: 234m (副露)
+      const chiMentsu: Mentsu = {
+        type: "shuntsu",
+        tiles: [m(2), m(3), m(4)],
+        isFuro: true,
+        furoType: "chi",
+      };
+      // 暗牌: 567p 678s 中中中 + 東東 (11枚)
+      const concealedTiles = [p(5), p(6), p(7), s(6), s(7), s(8), dragon(3), dragon(3), dragon(3), wind(1), wind(1)];
+      const winTile = wind(1);
+      const hand = makeHand(concealedTiles, winTile, { furoMentsuList: [chiMentsu] });
+      const parsedList = parseHandWithFuro(concealedTiles, [chiMentsu]);
+      expect(parsedList.length).toBeGreaterThan(0);
+      const yaku = calculateYaku(hand, parsedList[0]);
+      // 中の役牌が成立
+      expect(yaku.some((y) => y.name.includes("中"))).toBe(true);
+      // 門前でないため isMenzen = false
+      const isMenzen = !parsedList[0].mentsuList.some((m) => m.isFuro);
+      expect(isMenzen).toBe(false);
+    });
+
+    it("暗槓: 門前扱いになる (isFuro = false)", () => {
+      // 暗槓: 中中中中
+      const ankanMentsu: Mentsu = {
+        type: "kantsu",
+        tiles: [dragon(3), dragon(3), dragon(3), dragon(3)],
+        isFuro: false, // 暗槓は門前
+        furoType: "ankan",
+      };
+      // 暗牌: 123m 456p 789s + 東東 (11枚)
+      const concealedTiles = [m(1), m(2), m(3), p(4), p(5), p(6), s(7), s(8), s(9), wind(1), wind(1)];
+      const winTile = wind(1);
+      const hand = makeHand(concealedTiles, winTile, { isTsumo: true, furoMentsuList: [ankanMentsu] });
+      const parsedList = parseHandWithFuro(concealedTiles, [ankanMentsu]);
+      expect(parsedList.length).toBeGreaterThan(0);
+      // 暗槓は isFuro=false なので mentsuList に含まれても門前扱い
+      const isMenzen = !parsedList[0].mentsuList.some((m) => m.isFuro);
+      expect(isMenzen).toBe(true);
+      // 門前ツモが成立する
+      const yaku = calculateYaku(hand, parsedList[0]);
+      expect(yaku.some((y) => y.nameEn === "Menzen Tsumo")).toBe(true);
+    });
+
+    it("parseHandWithFuro: 副露枚数不一致は空配列を返す", () => {
+      const ponMentsu: Mentsu = {
+        type: "koutsu",
+        tiles: [dragon(3), dragon(3), dragon(3)],
+        isFuro: true,
+        furoType: "pon",
+      };
+      // ポン1つで暗牌は11枚のはずが14枚を渡す → 無効
+      const wrongTiles = [m(1), m(2), m(3), p(1), p(2), p(3), s(1), s(2), s(3), s(4), s(5), s(6), wind(1), wind(1)];
+      const result = parseHandWithFuro(wrongTiles, [ponMentsu]);
+      expect(result).toHaveLength(0);
     });
   });
 });
