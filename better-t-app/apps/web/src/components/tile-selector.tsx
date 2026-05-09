@@ -46,6 +46,8 @@ export function TileButton({ tile, onClick, disabled, className = "" }: TileButt
 
 interface TileSelectorProps {
   onSelect: (tile: Tile) => void;
+  /** 現在の手牌 (同一牌の枚数チェックに使用) */
+  currentTiles: Tile[];
   disabled?: boolean;
 }
 
@@ -68,21 +70,29 @@ const DRAGON_TILES: Tile[] = [
   { suit: "dragon", value: 3 },
 ];
 
-export function TileSelector({ onSelect, disabled }: TileSelectorProps) {
+/** 手牌内の特定の牌の枚数を数える */
+function countTile(tiles: Tile[], tile: Tile): number {
+  return tiles.filter((t) => t.suit === tile.suit && t.value === tile.value).length;
+}
+
+export function TileSelector({ onSelect, currentTiles, disabled }: TileSelectorProps) {
   return (
     <div className="space-y-3">
       {NUMBER_SUITS.map(({ suit, label }) => (
         <div key={suit}>
           <p className="text-xs text-muted-foreground mb-1.5">{label}</p>
           <div className="flex gap-1.5 flex-wrap">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((v) => (
-              <TileButton
-                key={`${suit}-${v}`}
-                tile={{ suit, value: v }}
-                onClick={onSelect}
-                disabled={disabled}
-              />
-            ))}
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((v) => {
+              const tile = { suit, value: v };
+              return (
+                <TileButton
+                  key={`${suit}-${v}`}
+                  tile={tile}
+                  onClick={onSelect}
+                  disabled={disabled || countTile(currentTiles, tile) >= 4}
+                />
+              );
+            })}
           </div>
         </div>
       ))}
@@ -90,10 +100,10 @@ export function TileSelector({ onSelect, disabled }: TileSelectorProps) {
         <p className="text-xs text-muted-foreground mb-1.5">字牌</p>
         <div className="flex gap-1.5 flex-wrap">
           {WIND_TILES.map((t) => (
-            <TileButton key={`wind-${t.value}`} tile={t} onClick={onSelect} disabled={disabled} />
+            <TileButton key={`wind-${t.value}`} tile={t} onClick={onSelect} disabled={disabled || countTile(currentTiles, t) >= 4} />
           ))}
           {DRAGON_TILES.map((t) => (
-            <TileButton key={`dragon-${t.value}`} tile={t} onClick={onSelect} disabled={disabled} />
+            <TileButton key={`dragon-${t.value}`} tile={t} onClick={onSelect} disabled={disabled || countTile(currentTiles, t) >= 4} />
           ))}
         </div>
       </div>

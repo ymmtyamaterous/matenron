@@ -208,7 +208,7 @@ function HandInputModePanel({
         {/* 牌選択 */}
         <div>
           <p className="text-sm font-medium text-foreground mb-3">牌を選択</p>
-          <TileSelector onSelect={handleAddTile} disabled={tiles.length >= 14} />
+          <TileSelector onSelect={handleAddTile} currentTiles={tiles} disabled={tiles.length >= 14} />
         </div>
 
         <div className="flex gap-2">
