@@ -4,29 +4,36 @@ import { ModeToggle } from "./mode-toggle";
 import UserMenu from "./user-menu";
 
 export default function Header() {
-  const links = [
-    { to: "/", label: "Home" },
-    { to: "/dashboard", label: "Dashboard" },
+  const navLinks = [
+    { to: "/score-calculator", label: "点数計算" },
+    { to: "/quiz", label: "クイズ" },
+    { to: "/yaku", label: "役一覧" },
+    { to: "/ranking", label: "ランキング" },
   ] as const;
 
   return (
-    <div>
-      <div className="flex flex-row items-center justify-between px-2 py-1">
-        <nav className="flex gap-4 text-lg">
-          {links.map(({ to, label }) => {
-            return (
-              <Link key={to} to={to}>
-                {label}
-              </Link>
-            );
-          })}
+    <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-14">
+        <Link to="/" className="font-bold text-xl text-primary tracking-tight">
+          麻点論
+        </Link>
+        <nav className="hidden md:flex items-center gap-6">
+          {navLinks.map(({ to, label }) => (
+            <Link
+              key={to}
+              to={to}
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+              activeProps={{ className: "text-primary font-semibold" }}
+            >
+              {label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-2">
           <ModeToggle />
           <UserMenu />
         </div>
       </div>
-      <hr />
-    </div>
+    </header>
   );
 }
