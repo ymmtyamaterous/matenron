@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/quiz/")({
@@ -8,7 +9,13 @@ export const Route = createFileRoute("/quiz/")({
 });
 
 function QuizTopPage() {
-  const history = useQuery(orpc.quiz.getHistory.queryOptions({ input: { limit: 10 } }));
+  const { data: session } = authClient.useSession();
+  const isLoggedIn = !!session?.user;
+
+  const history = useQuery({
+    ...orpc.quiz.getHistory.queryOptions({ input: { limit: 10 } }),
+    enabled: isLoggedIn,
+  });
 
   const attempts = history.data?.items ?? [];
   const total = attempts.length;
